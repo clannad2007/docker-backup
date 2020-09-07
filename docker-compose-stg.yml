@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  farming-stg-nginx:
+    image: farming-stg-nginx:latest
+    build:
+      context: .
+      args:
+        - "BUILD_ARGUMENT_ENV=stg"
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: farming-stg-nginx
+    restart: always
+    ports:
+      - "8083:80"
+    volumes:
+      - .:/var/www/html:ro
+    depends_on:
+      - farming-stg-laravel
+    links:
+      - farming-stg-laravel
+
+  farming-stg-laravel:
+    image: farming-stg-laravel:latest
+    build:
+      context: .
+      args:
+        - "BUILD_ARGUMENT_ENV=stg"
+      dockerfile: ./Dockerfile
+    container_name: farming-stg-laravel
+    expose:
+      - "9000"
+    volumes:
+      - .:/var/www/html
+      - farming-stg-node-modules:/var/www/html/node_modules
+
+  farming-stg-supervisord:
+    image: farming-stg-laravel:latest
+    container_name: farming-stg-supervisord
+    volumes:
+      - .:/var/www/html
+    user: root
+    command: ["/usr/bin/supervisord"]
+
+volumes:
+  farming-stg-node-modules: {}

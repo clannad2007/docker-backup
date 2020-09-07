@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+
+  farming-test-nginx:
+    image: farming-test-nginx:latest
+    build:
+      context: .
+      args:
+        - "BUILD_ARGUMENT_ENV=test"
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: farming-test-nginx
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - .:/var/www/html:ro
+    depends_on:
+      - farming-test-laravel
+    links:
+      - farming-test-laravel
+
+  farming-test-laravel:
+    image: farming-test-laravel:latest
+    build:
+      context: .
+      args:
+        - "BUILD_ARGUMENT_ENV=test"
+      dockerfile: ./Dockerfile
+    container_name: farming-test-laravel
+    expose:
+      - "9000"
+    volumes:
+      - .:/var/www/html
+      - farming-test-node-modules:/var/www/html/node_modules
+
+  farming-test-supervisord:
+    image: farming-test-laravel:latest
+    container_name: farming-test-supervisord
+    volumes:
+      - .:/var/www/html
+    user: root
+    command: ["/usr/bin/supervisord"]
+
+volumes:
+  farming-test-node-modules: {}
